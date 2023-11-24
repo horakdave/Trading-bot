@@ -7,6 +7,8 @@ def get_bitcoin_data():
     ticker = exchange.fetch_ticker(symbol)
     return ticker['last']
 
+
+
 def calculate_trade_amount(current_capital, price, transaction_cost, factor=-0.005):
     max_trade_amount = current_capital * factor
     trade_amount = max_trade_amount / price
@@ -14,7 +16,7 @@ def calculate_trade_amount(current_capital, price, transaction_cost, factor=-0.0
     return trade_amount - transaction_fee
 
 def trade_bitcoin(capital):
-    percentage_change = 0.01  # 1%
+    percentage_change = 0.01 # 1%
     transaction_cost = 0.0005
     current_capital = capital
     bitcoin_amount = 0.0
@@ -42,7 +44,7 @@ def trade_bitcoin(capital):
 
         if hold:
             current_gain_loss = (price - previous_price) * bitcoin_amount
-            print(f"Current price:  {price} USD        Change: {price_change:.2f}%          Gain/Loss: {current_gain_loss:.2f} USD")
+            print(f"Current price: {price} USD        Change: {price_change:.2f}%          Gain/Loss: {current_gain_loss:.2f} USD")
 
         if not hold and price_change <= -percentage_change:
             hold = True
