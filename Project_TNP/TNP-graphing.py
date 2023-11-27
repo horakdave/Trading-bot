@@ -16,7 +16,7 @@ def simple_moving_average_strategy(data, short_window=10, long_window=50):
     signals['positions'] = signals['signal'].diff()
     return signals
 
-stock_symbol = 'TSLA'
+stock_symbol = 'TSLA'   #chose your own stock
 stock_data = get_stock_data(stock_symbol, interval='1m', period='1d')
 
 signals = simple_moving_average_strategy(stock_data)
