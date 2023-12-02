@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
 
+plt.style.use('dark_background')
+
 def get_stock_data(symbol, interval='1m', hours_back=24):   # adjustable
     end_date = datetime.now()
-    start_date = end_date - timedelta(hours=hours_back) - timedelta(hours=0) # adjustable
+    start_date = end_date - timedelta(hours=hours_back) - timedelta(hours=14)
     return yf.download(symbol, interval=interval, start=start_date, end=end_date)
 
 
@@ -24,21 +26,38 @@ def update(frame):
     new_data = get_stock_data(stock_symbol, interval='1m', hours_back=30)
     signals = simple_moving_average_strategy(new_data)
 
+    plt.style.use('dark_background')
+
+    plt.rcParams['grid.color'] = '#444444'
+    plt.rcParams['axes.labelcolor'] = '#DDDDDD'
+    plt.rcParams['xtick.color'] = '#DDDDDD'
+    plt.rcParams['ytick.color'] = '#DDDDDD'
+    plt.rcParams['lines.color'] = '#BBBBBB'
+
     plt.clf()
 
-    plt.plot(new_data['Close'], label=f'{stock_symbol} Price')
+    plt.plot(new_data['Close'], color='#0081FF', label=f'{stock_symbol} Price')
 
     if not signals.empty:
-        plt.plot(signals['short_mavg'], label='Short MA', linestyle='-') # Updated from '--' to '-'
-        plt.plot(signals['long_mavg'], label='Long MA', linestyle='-') # Updated from '--' to '-'
+        plt.plot(signals['short_mavg'], label='Short MA', linestyle='-', linewidth=2, color='#FDFF00')   #adjustable
+        plt.plot(signals['long_mavg'], label='Long MA', linestyle='-', linewidth=2, color='#950101')     #adjustable
 
         buy_indices = signals.loc[signals.positions == 1.0].index
-        buy_values = new_data.loc[buy_indices]['Close'] # Changed from signals['short_mavg']
+        buy_values = new_data.loc[buy_indices]['Close']
         plt.scatter(buy_indices, buy_values, marker='^', color='g', label='Buy', alpha=1, s=100)
 
         sell_indices = signals.loc[signals.positions == -1.0].index
-        sell_values = new_data.loc[sell_indices]['Close'] # Changed from signals['short_mavg']
+        sell_values = new_data.loc[sell_indices]['Close']
         plt.scatter(sell_indices, sell_values, marker='v', color='r', label='Sell', alpha=1, s=100)
+
+        # profit/loss
+        for index, row in signals.iterrows():
+            if row['positions'] == 1.0:
+                profit_loss = new_data.loc[index:, 'Close'].pct_change().sum()
+                plt.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='g', fontsize=10, ha='right')
+            elif row['positions'] == -1.0:
+                profit_loss = new_data.loc[index:, 'Close'].pct_change().sum()
+                plt.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='r', fontsize=10, ha='left')
 
     plt.title(f'{stock_symbol} - Real-Time Moving Average Strategy')
     plt.xlabel('Date')
