@@ -39,13 +39,22 @@ def update(frame):
         sell_indices = signals.loc[signals.positions == -1.0].index
         sell_values = signals.short_mavg[signals.positions == -1.0]
         plt.scatter(sell_indices, sell_values, marker='v', color='r', label='Sell', alpha=1, s=100)
+    
+    # profit/loss
+    for index, row in signals.iterrows():
+        if row['positions'] == 1.0:
+            profit_loss = new_data.loc[index:, 'Close'].pct_change().sum()
+            plt.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='g', fontsize=10, ha='right')
+        elif row['positions'] == -1.0:
+            profit_loss = new_data.loc[index:, 'Close'].pct_change().sum()
+            plt.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='r', fontsize=10, ha='left')
 
     plt.title(f'{stock_symbol} - Real-Time Moving Average Strategy')
     plt.xlabel('Date')
     plt.ylabel('Price')
     plt.legend()
 
-stock_symbol = 'TSLA'
+stock_symbol = 'TSLA' # chose your own stock
 
 fig, ax = plt.subplots(figsize=(12, 8))
 ani = FuncAnimation(fig, update, interval=120000) #adjustable (120sec)
