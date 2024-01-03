@@ -16,13 +16,12 @@ The latest versions, named TNP-graphing, implement a more effective strategy usi
 
 - **v0.1 - v1.2:** Deprecated versions using a percentage-based approach.
 - **v2.0 (TNP-graphing):** Implementing Short MA and Long MA strategy.
+- **v2.4 (TNP-flask):** Mostly just trying out the flask library(*module* or whatever is it called)
 
 ## Disclaimer
 
-These tools provide suggestions based on historical data and moving averages. It's crucial to conduct thorough research and consider other factors before making any financial decisions. The creators of Project_TNP are not responsible for any losses incurred through the use of these tools.
+These tools provide suggestions based on historical data and moving averages. It's crucial to conduct thorough research and consider other factors before making any financial decisions. The creators of Project_TNP(just me) are not responsible for any losses made through the use of these tools.
 
-Feel free to contribute to the project and enhance its features. Happy trading!
+Feel free to contribute to the project and enhance its features.
 
-**Note:** The provided information is a template, and you should replace placeholders with accurate details about your repository and project structure.
-
-**Note2:** English is not my native language and I apologize if you dont find the text intelligible(I googled that word).
+**Note:** English is not my native language and I apologize if you dont find the text intelligible(I googled that word).
