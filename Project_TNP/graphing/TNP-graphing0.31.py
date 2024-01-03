@@ -54,7 +54,7 @@ def update(frame):
     plt.ylabel('Price')
     plt.legend()
 
-stock_symbol = 'TSLA' # chose your own stock
+stock_symbol = 'NVDA' # chose your own stock
 
 fig, ax = plt.subplots(figsize=(12, 8))
 ani = FuncAnimation(fig, update, interval=120000) #adjustable (120sec)
