@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
 
-def get_stock_data(symbol, interval='1d', hours_back=24):   # adjustable
+def get_stock_data(symbol, interval='1d', hours_back=24):   # adjust later
     end_date = datetime.now()
-    start_date = end_date - timedelta(hours=hours_back) - timedelta(hours=0) # adjustable
+    start_date = end_date - timedelta(hours=hours_back)
     return yf.download(symbol, interval=interval, start=start_date, end=end_date)
 
 def simple_moving_average_strategy(data, short_window=10, long_window=50):
@@ -55,7 +55,7 @@ def update(frame):
     plt.legend()
 
 stock_symbol = 'TSLA' # chose your own stock
-initial_data = get_stock_data(stock_symbol, interval='1d', hours_back=30)
+initial_data = get_stock_data(stock_symbol, interval='1d', hours_back=24) # adjust later
 signals = simple_moving_average_strategy(initial_data)
 
 fig, ax = plt.subplots(figsize=(12, 8))
