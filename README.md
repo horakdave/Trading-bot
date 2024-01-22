@@ -17,6 +17,7 @@ The latest versions, named TNP-graphing, implement a more effective strategy usi
 - **v0.1 - v1.2:** Deprecated versions using a percentage-based approach.
 - **v2.0 (TNP-graphing):** Implementing Short MA and Long MA strategy.
 - **v2.4 (TNP-flask):** Mostly just trying out the flask library(*module* or whatever is it called)
+- **v2.5 (JS):** Trying to host a website with the graph and learning JavaScript on the way doing it.
 
 ## Disclaimer
 
