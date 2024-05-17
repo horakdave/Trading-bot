@@ -29,8 +29,8 @@ def update(frame):
     plt.plot(new_data['Close'], label=f'{stock_symbol} Price')
 
     if not signals.empty:
-        plt.plot(signals['short_mavg'], label='Short MA', linestyle='--')
-        plt.plot(signals['long_mavg'], label='Long MA', linestyle='--')
+        plt.plot(signals['short_mavg'], label='Short MA', linestyle='-')
+        plt.plot(signals['long_mavg'], label='Long MA', linestyle='-')
 
         buy_indices = signals.loc[signals.positions == 1.0].index
         buy_values = signals.short_mavg[signals.positions == 1.0]
@@ -40,7 +40,7 @@ def update(frame):
         sell_values = signals.short_mavg[signals.positions == -1.0]
         plt.scatter(sell_indices, sell_values, marker='v', color='r', label='Sell', alpha=1, s=100)
 
-    plt.title(f'{stock_symbol} - Real-Time Moving Average Strategy')
+    plt.title(f'{stock_symbol} - Real time moving average strat.')
     plt.xlabel('Date')
     plt.ylabel('Price')
     plt.legend()
@@ -48,5 +48,5 @@ def update(frame):
 stock_symbol = 'TSLA'
 
 fig, ax = plt.subplots(figsize=(12, 8))
-ani = FuncAnimation(fig, update, interval=120000)  #adjustable (120sec)
+ani = FuncAnimation(fig, update, interval=3600000)  #adjustable (3600sec)
 plt.show()

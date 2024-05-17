@@ -29,15 +29,15 @@ def update(frame):
     plt.plot(new_data['Close'], label=f'{stock_symbol} Price')
 
     if not signals.empty:
-        plt.plot(signals['short_mavg'], label='Short MA', linestyle='-') # Updated from '--' to '-'
-        plt.plot(signals['long_mavg'], label='Long MA', linestyle='-') # Updated from '--' to '-'
+        plt.plot(signals['short_mavg'], label='Short MA', linestyle='-')
+        plt.plot(signals['long_mavg'], label='Long MA', linestyle='-')
 
         buy_indices = signals.loc[signals.positions == 1.0].index
-        buy_values = signals.short_mavg[signals.positions == 1.0]
+        buy_values = new_data.loc[buy_indices]['Close']
         plt.scatter(buy_indices, buy_values, marker='^', color='g', label='Buy', alpha=1, s=100)
 
         sell_indices = signals.loc[signals.positions == -1.0].index
-        sell_values = signals.short_mavg[signals.positions == -1.0]
+        sell_values = new_data.loc[sell_indices]['Close']
         plt.scatter(sell_indices, sell_values, marker='v', color='r', label='Sell', alpha=1, s=100)
 
         # profit/loss
@@ -54,7 +54,7 @@ def update(frame):
     plt.ylabel('Price')
     plt.legend()
 
-stock_symbol = 'NVDA'
+stock_symbol = 'TSLA'
 
 fig, ax = plt.subplots(figsize=(12, 8))
 ani = FuncAnimation(fig, update, interval=120000) #adjustable (120sec)
