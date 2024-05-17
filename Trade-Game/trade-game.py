@@ -10,8 +10,10 @@ initial_capital = 0
 crypto_symbol = 'BTCUSDT'
 client = Client()
 
-print("Welcome to THE ULTIMATE TRADE GAME")
-print("that David, the amazing person he is, made.")
+print("Welcome to THE TRADE GAME")
+print("You start with 1 bitcoin.")
+print("The goal is to make a lot of money by trading the bitcoin.")
+print("You can use binance, delta or any other crypto site to improve your experience")
 print("Good luck!")
 print("--------------------------------------------------")
 
