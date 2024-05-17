@@ -1,2 +1,2 @@
-Current balance: 63.30000000000291
+Current balance: 0
 Bitcoins held: 1
