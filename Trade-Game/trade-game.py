@@ -70,8 +70,10 @@ def sell_crypto(event):
                     bitcoins_held = int(line.split(":")[1].strip())
                     break
         if bitcoins_held >= 1:
-            initial_capital += last_price
+            sell_amount = last_price * 0.98  # 2% sell fee
+            initial_capital += sell_amount
             bitcoins_held -= 1
+            print(f"your sell fee is {sell_amount} (2%)")
             print(f"Sold at {last_price}, new balance: {initial_capital}")
             with open("save1.txt", "w") as file:
                 file.write(f"Current balance: {initial_capital}\nBitcoins held: {bitcoins_held}\n")
