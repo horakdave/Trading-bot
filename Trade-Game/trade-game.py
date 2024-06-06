@@ -1,10 +1,7 @@
-import yfinance as yf
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Button
-from datetime import datetime
+import tkinter as tk
+from tkinter import Button
 from binance.client import Client
-from matplotlib.animation import FuncAnimation
+import pandas as pd
 
 initial_capital = 0
 crypto_symbol = 'BTCUSDT'
@@ -17,35 +14,17 @@ print("You can use binance, delta or any other crypto site to improve your exper
 print("Good luck!")
 print("--------------------------------------------------")
 
-def get_crypto_data(symbol, interval='1m'):
-    return client.get_historical_klines(symbol, interval, "1 day ago UTC")
-
-fig, ax = plt.subplots()
-plt.subplots_adjust(bottom=0.3)
-
 def is_market_open():
     return True
 
-def update(val):
-    ax.clear()
-    if is_market_open():
-        data = pd.DataFrame(get_crypto_data(crypto_symbol), columns=['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume', 'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore'])
-        data['Close'] = pd.to_numeric(data['Close'])
-        data.index = pd.to_datetime(data['Open time'], unit='ms')
-        ax.plot(data.index, data['Close'])
-        ax.set_title(f'{crypto_symbol} Price')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Price')
-    else:
-        ax.text(0.5, 0.5, 'Market Closed', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
-    plt.draw()
+def get_crypto_data(symbol, interval='1m'):
+    return client.get_historical_klines(symbol, interval, "1 day ago UTC")
 
-def buy_crypto(event):
+def buy_crypto():
     global initial_capital
     if is_market_open():
         data = pd.DataFrame(get_crypto_data(crypto_symbol), columns=['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume', 'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore'])
-        data['Close'] = pd.to_numeric(data['Close'])
-        last_price = data['Close'].iloc[-1]
+        last_price = pd.to_numeric(data['Close'].iloc[-1])
         if initial_capital >= last_price:
             initial_capital -= last_price
             bitcoins_held = 1
@@ -57,12 +36,11 @@ def buy_crypto(event):
     else:
         print("Market is closed, cannot buy.")
 
-def sell_crypto(event):
+def sell_crypto():
     global initial_capital
     if is_market_open():
         data = pd.DataFrame(get_crypto_data(crypto_symbol), columns=['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume', 'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore'])
-        data['Close'] = pd.to_numeric(data['Close'])
-        last_price = data['Close'].iloc[-1]
+        last_price = pd.to_numeric(data['Close'].iloc[-1])
         with open("save1.txt", "r") as file:
             lines = file.readlines()
             for line in lines:
@@ -82,27 +60,13 @@ def sell_crypto(event):
     else:
         print("Market is closed, cannot sell.")
 
-update_button_ax = plt.axes([0.7, 0.05, 0.1, 0.075])
-update_button = Button(update_button_ax, 'Update', color='lightgoldenrodyellow', hovercolor='0.975')
-update_button.on_clicked(update)
+root = tk.Tk()
+root.title("Crypto Trading Game")
 
-buy_button_ax = plt.axes([0.1, 0.05, 0.1, 0.075])
-buy_button = Button(buy_button_ax, 'Buy', color='lightgreen', hovercolor='0.975')
-buy_button.on_clicked(buy_crypto)
+buy_button = Button(root, text="Buy", command=buy_crypto, bg='lightgreen', height=10, width=35)
+buy_button.pack(side=tk.LEFT)
 
-sell_button_ax = plt.axes([0.3, 0.05, 0.1, 0.075])
-sell_button = Button(sell_button_ax, 'Sell', color='lightcoral', hovercolor='0.975')
-sell_button.on_clicked(sell_crypto)
+sell_button = Button(root, text="Sell", command=sell_crypto, bg='lightcoral', height=10, width=35)
+sell_button.pack(side=tk.LEFT)
 
-ani = FuncAnimation(fig, update, interval=120000, cache_frame_data=False)  #2 min
-
-if is_market_open():
-    initial_data = pd.DataFrame(get_crypto_data(crypto_symbol), columns=['Open time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close time', 'Quote asset volume', 'Number of trades', 'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore'])
-    initial_data['Close'] = pd.to_numeric(initial_data['Close'])
-    initial_data.index = pd.to_datetime(initial_data['Open time'], unit='ms')
-    ax.plot(initial_data.index, initial_data['Close'])
-    ax.set_title(f'{crypto_symbol} Price')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Price')
-
-plt.show()
+root.mainloop()
