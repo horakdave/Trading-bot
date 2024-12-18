@@ -10,22 +10,22 @@ def get_stock_data(symbol, interval='1m', hours_back=24):   # adjustable
     return yf.download(symbol, interval=interval, start=start_date, end=end_date)
 
 
-def simple_moving_average_strategy(data, short_window=10, long_window_1=50, long_window_2=100, long_window_3=200):
+def simple_moving_average_strategy(data, ma_1=5, ma_2=10, ma_3=20):
     signals = pd.DataFrame(index=data.index)
     signals['price'] = data['Close']
-    signals['short_mavg'] = data['Close'].rolling(window=short_window, min_periods=1, center=False).mean()
-    signals['long_mavg_1'] = data['Close'].rolling(window=long_window_1, min_periods=1, center=False).mean()
-    signals['long_mavg_2'] = data['Close'].rolling(window=long_window_2, min_periods=1, center=False).mean()
-    signals['long_mavg_3'] = data['Close'].rolling(window=long_window_3, min_periods=1, center=False).mean()
+    signals['ma_1'] = data['Close'].rolling(window=ma_1, min_periods=1, center=False).mean()
+    signals['ma_2'] = data['Close'].rolling(window=ma_2, min_periods=1, center=False).mean()
+    signals['ma_3'] = data['Close'].rolling(window=ma_3, min_periods=1, center=False).mean()
     
     # Generate signals for each MA crossover
     signals['signal_1'] = 0.0
     signals['signal_2'] = 0.0
     signals['signal_3'] = 0.0
     
-    signals['signal_1'][short_window:] = (signals['short_mavg'][short_window:] > signals['long_mavg_1'][short_window:]).astype(float)
-    signals['signal_2'][short_window:] = (signals['short_mavg'][short_window:] > signals['long_mavg_2'][short_window:]).astype(float)
-    signals['signal_3'][short_window:] = (signals['short_mavg'][short_window:] > signals['long_mavg_3'][short_window:]).astype(float)
+    # Using MA1 as the fastest MA, generate signals when it crosses the others
+    signals['signal_1'][ma_1:] = (signals['ma_1'][ma_1:] > signals['ma_2'][ma_1:]).astype(float)
+    signals['signal_2'][ma_1:] = (signals['ma_1'][ma_1:] > signals['ma_3'][ma_1:]).astype(float)
+    signals['signal_3'][ma_1:] = (signals['ma_2'][ma_1:] > signals['ma_3'][ma_1:]).astype(float)
     
     signals['positions_1'] = signals['signal_1'].diff()
     signals['positions_2'] = signals['signal_2'].diff()
@@ -42,12 +42,11 @@ def update(frame):
     plt.plot(new_data['Close'], label=f'{stock_symbol} Price')
 
     if not signals.empty:
-        plt.plot(signals['short_mavg'], label='Short MA (10)', linestyle='-')
-        plt.plot(signals['long_mavg_1'], label='Long MA (50)', linestyle='-')
-        plt.plot(signals['long_mavg_2'], label='Long MA (100)', linestyle='-', alpha=0.7)
-        plt.plot(signals['long_mavg_3'], label='Long MA (200)', linestyle='-', alpha=0.5)
+        plt.plot(signals['ma_1'], label='MA (5)', linestyle='-')
+        plt.plot(signals['ma_2'], label='MA (10)', linestyle='-')
+        plt.plot(signals['ma_3'], label='MA (20)', linestyle='-', alpha=0.7)
 
-        # MA1 signals (50 MA - smallest and lightest color)
+        # MA1 signals (5 MA - smallest and lightest color)
         buy_indices = signals.loc[signals.positions_1 == 1.0].index
         buy_values = new_data.loc[buy_indices]['Close']
         plt.scatter(buy_indices, buy_values, marker='^', color='#90EE90', label='Buy MA1', alpha=1, s=60)  # Light green, small
@@ -56,7 +55,7 @@ def update(frame):
         sell_values = new_data.loc[sell_indices]['Close']
         plt.scatter(sell_indices, sell_values, marker='v', color='#FFB6C1', label='Sell MA1', alpha=1, s=60)  # Light red, small
 
-        # MA2 signals (100 MA - medium size and color)
+        # MA2 signals (10 MA - medium size and color)
         buy_indices = signals.loc[signals.positions_2 == 1.0].index
         buy_values = new_data.loc[buy_indices]['Close']
         plt.scatter(buy_indices, buy_values, marker='^', color='#32CD32', label='Buy MA2', alpha=0.8, s=120)  # Medium green, medium
@@ -65,14 +64,6 @@ def update(frame):
         sell_values = new_data.loc[sell_indices]['Close']
         plt.scatter(sell_indices, sell_values, marker='v', color='#DC143C', label='Sell MA2', alpha=0.8, s=120)  # Medium red, medium
 
-        # MA3 signals (200 MA - largest and strongest color)
-        buy_indices = signals.loc[signals.positions_3 == 1.0].index
-        buy_values = new_data.loc[buy_indices]['Close']
-        plt.scatter(buy_indices, buy_values, marker='^', color='#006400', label='Buy MA3', alpha=0.6, s=180)  # Dark green, large
-
-        sell_indices = signals.loc[signals.positions_3 == -1.0].index
-        sell_values = new_data.loc[sell_indices]['Close']
-        plt.scatter(sell_indices, sell_values, marker='v', color='#8B0000', label='Sell MA3', alpha=0.6, s=180)  # Dark red, large
 
         # Profit/loss calculations (keeping just for MA1 to avoid clutter)
         for index, row in signals.iterrows():
