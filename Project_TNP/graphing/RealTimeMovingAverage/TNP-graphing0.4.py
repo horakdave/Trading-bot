@@ -70,20 +70,17 @@ def update(frame):
         plt.scatter(sell_indices, sell_values, marker='v', color='#FFB6C1', label='Sell MA1', alpha=1, s=60)
 
         # Calculate and display profit/loss for MA1
-        last_buy_price = None
-        for idx in signals.index:
-            if signals.loc[idx, 'positions_1'] == 1.0:
-                last_buy_price = new_data.loc[idx, 'Close']
-            elif signals.loc[idx, 'positions_1'] == -1.0 and last_buy_price is not None:
-                sell_price = new_data.loc[idx, 'Close']
-                profit_pct = ((sell_price - last_buy_price) / last_buy_price) * 100
+        for buy_idx, sell_idx in zip(buy_indices, sell_indices):
+            if buy_idx < sell_idx:  # Only calculate if buy comes before sell
+                buy_price = new_data.loc[buy_idx, 'Close']
+                sell_price = new_data.loc[sell_idx, 'Close']
+                profit_pct = ((sell_price - buy_price) / buy_price) * 100
                 color = '#27AE60' if profit_pct >= 0 else '#ED4245'
-                plt.text(idx, sell_price, f'{profit_pct:.2f}%', 
-                        color=color, fontsize=10, 
+                plt.text(sell_idx, sell_price, f'{profit_pct:.2f}%', 
+                        color=color, fontsize=14, weight='bold',
                         ha='left', va='bottom')
-                last_buy_price = None
 
-        # MA2 signals and profit/loss
+        # MA2 signals
         buy_indices = signals.loc[signals.positions_2 == 1.0].index
         buy_values = new_data.loc[buy_indices]['Close']
         plt.scatter(buy_indices, buy_values, marker='^', color='#32CD32', label='Buy MA2', alpha=0.8, s=120)
@@ -92,21 +89,7 @@ def update(frame):
         sell_values = new_data.loc[sell_indices]['Close']
         plt.scatter(sell_indices, sell_values, marker='v', color='#DC143C', label='Sell MA2', alpha=0.8, s=120)
 
-        # Calculate and display profit/loss for MA2
-        last_buy_price = None
-        for idx in signals.index:
-            if signals.loc[idx, 'positions_2'] == 1.0:
-                last_buy_price = new_data.loc[idx, 'Close']
-            elif signals.loc[idx, 'positions_2'] == -1.0 and last_buy_price is not None:
-                sell_price = new_data.loc[idx, 'Close']
-                profit_pct = ((sell_price - last_buy_price) / last_buy_price) * 100
-                color = '#27AE60' if profit_pct >= 0 else '#ED4245'
-                plt.text(idx, sell_price, f'{profit_pct:.2f}%', 
-                        color=color, fontsize=10, 
-                        ha='right', va='top')
-                last_buy_price = None
-
-        # MA3 signals and profit/loss
+        # MA3 signals
         buy_indices = signals.loc[signals.positions_3 == 1.0].index
         buy_values = new_data.loc[buy_indices]['Close']
         plt.scatter(buy_indices, buy_values, marker='^', color='#006400', label='Buy MA3', alpha=0.6, s=180)
@@ -114,20 +97,6 @@ def update(frame):
         sell_indices = signals.loc[signals.positions_3 == -1.0].index
         sell_values = new_data.loc[sell_indices]['Close']
         plt.scatter(sell_indices, sell_values, marker='v', color='#8B0000', label='Sell MA3', alpha=0.6, s=180)
-
-        # Calculate and display profit/loss for MA3
-        last_buy_price = None
-        for idx in signals.index:
-            if signals.loc[idx, 'positions_3'] == 1.0:
-                last_buy_price = new_data.loc[idx, 'Close']
-            elif signals.loc[idx, 'positions_3'] == -1.0 and last_buy_price is not None:
-                sell_price = new_data.loc[idx, 'Close']
-                profit_pct = ((sell_price - last_buy_price) / last_buy_price) * 100
-                color = '#27AE60' if profit_pct >= 0 else '#ED4245'
-                plt.text(idx, sell_price, f'{profit_pct:.2f}%', 
-                        color=color, fontsize=10, 
-                        ha='right', va='bottom')
-                last_buy_price = None
 
     plt.title(f'{stock_symbol} - Real-Time Moving Average Strategy')
     plt.xlabel('Date')
