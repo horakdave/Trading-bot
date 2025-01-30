@@ -10,7 +10,7 @@ def get_stock_data(symbol, interval='1m', hours_back=24):   # adjustable
     return yf.download(symbol, interval=interval, start=start_date, end=end_date)
 
 
-def simple_moving_average_strategy(data, short_window=10, long_window=50):
+def simple_moving_average_strategy(data, short_window=6, long_window=50):   #adjustable
     signals = pd.DataFrame(index=data.index)
     signals['price'] = data['Close']
     signals['short_mavg'] = data['Close'].rolling(window=short_window, min_periods=1, center=False).mean()
@@ -57,5 +57,5 @@ def update(frame):
 stock_symbol = 'TSLA'
 
 fig, ax = plt.subplots(figsize=(12, 8))
-ani = FuncAnimation(fig, update, interval=120000) #adjustable (120sec)
+ani = FuncAnimation(fig, update, interval=500) #adjustable (0,5sec)
 plt.show()

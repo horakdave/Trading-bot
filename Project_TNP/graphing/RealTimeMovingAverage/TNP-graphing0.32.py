@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from datetime import datetime, timedelta
+from mplfinance.original_flavor import candlestick_ohlc
+import matplotlib.dates as mpdates
 
 def get_stock_data(symbol, interval='1m', hours_back=24):   # adjustable
     end_date = datetime.now()
@@ -10,77 +12,55 @@ def get_stock_data(symbol, interval='1m', hours_back=24):   # adjustable
     return yf.download(symbol, interval=interval, start=start_date, end=end_date)
 
 
-def simple_moving_average_strategy(data, ma_1=5, ma_2=10, ma_3=20):
+def simple_moving_average_strategy(data, short_window=5, long_window=50):   #adjustable
     signals = pd.DataFrame(index=data.index)
     signals['price'] = data['Close']
-    signals['ma_1'] = data['Close'].rolling(window=ma_1, min_periods=1, center=False).mean()
-    signals['ma_2'] = data['Close'].rolling(window=ma_2, min_periods=1, center=False).mean()
-    signals['ma_3'] = data['Close'].rolling(window=ma_3, min_periods=1, center=False).mean()
-    
-    # Generate signals for each MA crossover
-    signals['signal_1'] = 0.0
-    signals['signal_2'] = 0.0
-    signals['signal_3'] = 0.0
-    
-    # Using MA1 as the fastest MA, generate signals when it crosses the others
-    signals['signal_1'][ma_1:] = (signals['ma_1'][ma_1:] > signals['ma_2'][ma_1:]).astype(float)
-    signals['signal_2'][ma_1:] = (signals['ma_1'][ma_1:] > signals['ma_3'][ma_1:]).astype(float)
-    signals['signal_3'][ma_1:] = (signals['ma_2'][ma_1:] > signals['ma_3'][ma_1:]).astype(float)
-    
-    signals['positions_1'] = signals['signal_1'].diff()
-    signals['positions_2'] = signals['signal_2'].diff()
-    signals['positions_3'] = signals['signal_3'].diff()
-    
+    signals['short_mavg'] = data['Close'].rolling(window=short_window, min_periods=1, center=False).mean()
+    signals['long_mavg'] = data['Close'].rolling(window=long_window, min_periods=1, center=False).mean()
+    signals['signal'] = 0.0
+    signals['signal'][short_window:] = (signals['short_mavg'][short_window:] > signals['long_mavg'][short_window:]).astype(float)
+    signals['positions'] = signals['signal'].diff()
     return signals
 
 def update(frame):
+    ax.clear()  # Clear only the axis instead of the entire figure
     new_data = get_stock_data(stock_symbol, interval='1m', hours_back=30)
     signals = simple_moving_average_strategy(new_data)
 
-    plt.clf()
+    # Convert date index to numbers for plotting
+    new_data['Date_num'] = mpdates.date2num(new_data.index)
+    ohlc = new_data[['Date_num', 'Open', 'High', 'Low', 'Close']].values
 
-    plt.plot(new_data['Close'], label=f'{stock_symbol} Price')
+    candlestick_ohlc(ax, ohlc, width=0.0005, colorup='g', colordown='r', alpha=0.8)
 
     if not signals.empty:
-        plt.plot(signals['ma_1'], label='MA (5)', linestyle='-')
-        plt.plot(signals['ma_2'], label='MA (10)', linestyle='-')
-        plt.plot(signals['ma_3'], label='MA (20)', linestyle='-', alpha=0.7)
+        ax.plot(new_data.index, signals['short_mavg'], label='Short MA', linestyle='-')
+        ax.plot(new_data.index, signals['long_mavg'], label='Long MA', linestyle='-')
 
-        # MA1 signals (5 MA - smallest and lightest color)
-        buy_indices = signals.loc[signals.positions_1 == 1.0].index
+        buy_indices = signals.loc[signals.positions == 1.0].index
         buy_values = new_data.loc[buy_indices]['Close']
-        plt.scatter(buy_indices, buy_values, marker='^', color='#90EE90', label='Buy MA1', alpha=1, s=60)  # Light green, small
+        ax.scatter(buy_indices, buy_values, marker='^', color='g', label='Buy', alpha=1, s=100)
 
-        sell_indices = signals.loc[signals.positions_1 == -1.0].index
+        sell_indices = signals.loc[signals.positions == -1.0].index
         sell_values = new_data.loc[sell_indices]['Close']
-        plt.scatter(sell_indices, sell_values, marker='v', color='#FFB6C1', label='Sell MA1', alpha=1, s=60)  # Light red, small
+        ax.scatter(sell_indices, sell_values, marker='v', color='r', label='Sell', alpha=1, s=100)
 
-        # MA2 signals (10 MA - medium size and color)
-        buy_indices = signals.loc[signals.positions_2 == 1.0].index
-        buy_values = new_data.loc[buy_indices]['Close']
-        plt.scatter(buy_indices, buy_values, marker='^', color='#32CD32', label='Buy MA2', alpha=0.8, s=120)  # Medium green, medium
-
-        sell_indices = signals.loc[signals.positions_2 == -1.0].index
-        sell_values = new_data.loc[sell_indices]['Close']
-        plt.scatter(sell_indices, sell_values, marker='v', color='#DC143C', label='Sell MA2', alpha=0.8, s=120)  # Medium red, medium
-
-
-        # Profit/loss calculations (keeping just for MA1 to avoid clutter)
+        # profit/loss
         for index, row in signals.iterrows():
-            if row['positions_1'] == 1.0:
+            if row['positions'] == 1.0:
                 profit_loss = new_data.loc[index:, 'Close'].pct_change().sum()
-                plt.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='#27AE60', fontsize=10, ha='right')
-            elif row['positions_1'] == -1.0:
+                ax.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='#27AE60', fontsize=10, ha='right')
+            elif row['positions'] == -1.0:
                 profit_loss = new_data.loc[index:, 'Close'].pct_change().sum()
-                plt.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='#ED4245', fontsize=10, ha='left')
+                ax.text(index, new_data.loc[index, 'Close'], f'{profit_loss * 100:.2f}%', color='#ED4245', fontsize=10, ha='left')
 
-    plt.title(f'{stock_symbol} - Real-Time Moving Average Strategy')
-    plt.xlabel('Date')
-    plt.ylabel('Price')
-    plt.legend()
+    ax.set_title(f'{stock_symbol} - Real-Time Moving Average Strategy')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Price')
+    ax.legend()
 
 stock_symbol = 'TSLA'
 
-fig, ax = plt.subplots(figsize=(14, 8))
-ani = FuncAnimation(fig, update, interval=120000) #adjustable (120sec)
-plt.show()
+fig, ax = plt.subplots(figsize=(12, 8))
+ani = FuncAnimation(fig, update, interval=1000, cache_frame_data=False)  # Added cache_frame_data=False
+plt.show()  
