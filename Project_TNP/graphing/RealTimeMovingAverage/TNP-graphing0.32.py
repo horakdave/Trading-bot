@@ -39,11 +39,11 @@ def update(frame):
 
         buy_indices = signals.loc[signals.positions == 1.0].index
         buy_values = new_data.loc[buy_indices]['Close']
-        ax.scatter(buy_indices, buy_values, marker='^', color='g', label='Buy', alpha=1, s=100)
+        ax.scatter(buy_indices, buy_values, marker='^', color='b', label='Buy', alpha=1, s=100)
 
         sell_indices = signals.loc[signals.positions == -1.0].index
         sell_values = new_data.loc[sell_indices]['Close']
-        ax.scatter(sell_indices, sell_values, marker='v', color='r', label='Sell', alpha=1, s=100)
+        ax.scatter(sell_indices, sell_values, marker='v', color='y', label='Sell', alpha=1, s=100)
 
         # profit/loss
         for index, row in signals.iterrows():
@@ -59,7 +59,7 @@ def update(frame):
     ax.set_ylabel('Price')
     ax.legend()
 
-stock_symbol = 'TSLA'
+stock_symbol = 'NVDA'
 
 fig, ax = plt.subplots(figsize=(12, 8))
 ani = FuncAnimation(fig, update, interval=1000, cache_frame_data=False)  # Added cache_frame_data=False
